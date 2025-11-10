@@ -13,6 +13,7 @@ import (
 type Maroto interface {
 	RegisterHeader(rows ...Row) error
 	RegisterFooter(rows ...Row) error
+	SetWatermark(text string, opacity float64, rotation float64)
 	AddRows(rows ...Row)
 	AddRow(rowHeight float64, cols ...Col) Row
 	AddAutoRow(cols ...Col) Row
