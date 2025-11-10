@@ -81,11 +81,21 @@ func (s *text) Add(text string, cell *entity.Cell, textProp *props.Text) {
 
 	var lines []string
 
-	if textProp.BreakLineStrategy == breakline.EmptySpaceStrategy {
-		words := strings.Split(unicodeText, " ")
-		lines = s.getLinesBreakingLineFromSpace(words, width)
-	} else {
-		lines = s.getLinesBreakingLineWithDash(unicodeText, width)
+	// Split by newlines first to honor explicit line breaks (e.g., from bullets in tables)
+	// Then apply word-wrapping strategy to each line segment
+	textLines := strings.Split(unicodeText, "\n")
+
+	for _, textLine := range textLines {
+		var lineGroup []string
+
+		if textProp.BreakLineStrategy == breakline.EmptySpaceStrategy {
+			words := strings.Split(textLine, " ")
+			lineGroup = s.getLinesBreakingLineFromSpace(words, width)
+		} else {
+			lineGroup = s.getLinesBreakingLineWithDash(textLine, width)
+		}
+
+		lines = append(lines, lineGroup...)
 	}
 
 	accumulateOffsetY := 0.0
@@ -108,11 +118,23 @@ func (s *text) GetLinesQuantity(text string, textProp *props.Text, colWidth floa
 
 	textTranslated := s.textToUnicode(text, textProp)
 
-	if textProp.BreakLineStrategy == breakline.DashStrategy {
-		return len(s.getLinesBreakingLineWithDash(text, colWidth))
-	} else {
-		return len(s.getLinesBreakingLineFromSpace(strings.Split(textTranslated, " "), colWidth))
+	// Split by newlines first to honor explicit line breaks, then count wrapped lines
+	textLines := strings.Split(textTranslated, "\n")
+	totalLines := 0
+
+	for _, textLine := range textLines {
+		var lineCount int
+
+		if textProp.BreakLineStrategy == breakline.DashStrategy {
+			lineCount = len(s.getLinesBreakingLineWithDash(textLine, colWidth))
+		} else {
+			lineCount = len(s.getLinesBreakingLineFromSpace(strings.Split(textLine, " "), colWidth))
+		}
+
+		totalLines += lineCount
 	}
+
+	return totalLines
 }
 
 func (s *text) getLinesBreakingLineFromSpace(words []string, colWidth float64) []string {
