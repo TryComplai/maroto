@@ -119,6 +119,11 @@ func (m *MetricsDecorator) RegisterFooter(rows ...core.Row) error {
 	return err
 }
 
+// SetWatermark decorates the SetWatermark method of maroto instance.
+func (m *MetricsDecorator) SetWatermark(text string, opacity float64, rotation float64) {
+	m.inner.SetWatermark(text, opacity, rotation)
+}
+
 // GetStructure decorates the GetStructure method of maroto instance.
 func (m *MetricsDecorator) GetStructure() *node.Node[core.Structure] {
 	var tree *node.Node[core.Structure]
