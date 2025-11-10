@@ -34,4 +34,5 @@ type Provider interface {
 	SetProtection(protection *entity.Protection)
 	SetCompression(compression bool)
 	SetMetadata(metadata *entity.Metadata)
+	SetWatermark(text string, opacity float64, rotation float64)
 }

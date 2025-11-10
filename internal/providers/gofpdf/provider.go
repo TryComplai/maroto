@@ -190,6 +190,62 @@ func (g *provider) SetMetadata(metadata *entity.Metadata) {
 	}
 }
 
+// SetWatermark sets a rotated, semi-transparent watermark on all pages
+// using gofpdf's header function and transformation features
+func (g *provider) SetWatermark(text string, opacity float64, rotation float64) {
+	if text == "" {
+		return
+	}
+
+	// Default values
+	if opacity == 0 {
+		opacity = 0.12 // Light watermark by default
+	}
+	if rotation == 0 {
+		rotation = 45.0 // 45 degree diagonal by default
+	}
+
+	// Get page dimensions for centering
+	pageWidth, pageHeight := g.fpdf.GetPageSize()
+	ctrX := pageWidth / 2.0
+	ctrY := pageHeight / 2.0
+
+	// Calculate font size based on text length (50pt for typical watermark)
+	fontSize := 50.0
+	fontLineHeight := g.fpdf.PointToUnitConvert(fontSize)
+	markY := (pageHeight - fontLineHeight) / 2.0
+
+	// Set header function to draw watermark on every page
+	g.fpdf.SetHeaderFunc(func() {
+		// Save current state
+		currentX, currentY := g.fpdf.GetXY()
+
+		// Set large, light-colored font for watermark
+		g.fpdf.SetFont("Arial", "B", fontSize)
+
+		// Calculate gray value from opacity (0-255 range)
+		grayValue := int(206 + (255-206)*(1-opacity))
+		g.fpdf.SetTextColor(grayValue, grayValue, grayValue)
+
+		// Position for watermark
+		g.fpdf.SetXY(0, markY)
+
+		// Apply rotation transformation
+		g.fpdf.TransformBegin()
+		g.fpdf.TransformRotate(rotation, ctrX, ctrY)
+
+		// Draw watermark text centered
+		g.fpdf.CellFormat(pageWidth, fontLineHeight, text, "", 0, "C", false, 0, "")
+
+		// End transformation
+		g.fpdf.TransformEnd()
+
+		// Restore position and font color
+		g.fpdf.SetXY(currentX, currentY)
+		g.fpdf.SetTextColor(0, 0, 0) // Reset to black
+	})
+}
+
 // GetDimensionsByImage is responsible for obtaining the dimensions of an image
 // If the image cannot be loaded, an error is returned
 func (g *provider) GetDimensionsByImage(file string) (*entity.Dimensions, error) {

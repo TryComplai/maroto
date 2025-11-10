@@ -154,6 +154,16 @@ func (m *Maroto) RegisterFooter(rows ...core.Row) error {
 	return nil
 }
 
+// SetWatermark configures a semi-transparent, rotated watermark that appears on all pages.
+// The watermark text will be rendered diagonally across the center of each page.
+// Parameters:
+//   - text: The watermark text to display (e.g., "DRAFT", "CONFIDENTIAL", "DRAFT - Company Name")
+//   - opacity: Transparency level from 0.0 (invisible) to 1.0 (fully opaque). Typical: 0.1-0.2
+//   - rotation: Rotation angle in degrees. Typical: 45.0 for diagonal watermark
+func (m *Maroto) SetWatermark(text string, opacity float64, rotation float64) {
+	m.provider.SetWatermark(text, opacity, rotation)
+}
+
 // Generate is responsible to compute the component tree created by
 // the usage of all other Maroto methods, and generate the PDF document.
 func (m *Maroto) Generate() (core.Document, error) {
